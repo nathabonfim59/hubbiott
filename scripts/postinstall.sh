@@ -1,26 +1,45 @@
 #!/bin/bash
-# Post-install script
+# Post-install script for Hubbiott package
+# This script runs after the package is installed
 
-# Set permissions
-chown -R hubbiott:hubbiott /etc/hubbiott
-chown -R hubbiott:hubbiott /var/lib/hubbiott
+set -e
 
-# Reload systemd
+# Set ownership on directories (may fail if directories don't exist yet)
+chown -R hubbiott:hubbiott /etc/hubbiott 2>/dev/null || true
+chown -R hubbiott:hubbiott /var/lib/hubbiott 2>/dev/null || true
+
+# Handle systemd
 if command -v systemctl >/dev/null 2>&1; then
+    echo "Reloading systemd daemon..."
     systemctl daemon-reload
 
-    # Enable service if not already enabled
+    echo "Enabling hubbiott service..."
     systemctl enable hubbiott.service
 
     # Start service if config exists
     if [ -f /etc/hubbiott/config.yaml ]; then
-        systemctl start hubbiott.service
+        echo "Configuration found, starting hubbiott service..."
+        systemctl start hubbiott.service || true
     fi
 fi
 
-echo "Hubbiott installed successfully!"
 echo ""
-echo "To configure:"
-echo "  1. Copy /etc/hubbiott/config.example.yaml to /etc/hubbiott/config.yaml"
-echo "  2. Edit the configuration file with your settings"
-echo "  3. Run: systemctl start hubbiott"
+echo "=========================================="
+echo "  Hubbiott installed successfully!"
+echo "=========================================="
+echo ""
+echo "To complete setup:"
+echo "  1. Copy the example config:"
+echo "     cp /etc/hubbiott/config.example.yaml /etc/hubbiott/config.yaml"
+echo ""
+echo "  2. Edit the configuration file:"
+echo "     nano /etc/hubbiott/config.yaml"
+echo ""
+echo "  3. Start the service:"
+echo "     systemctl start hubbiott"
+echo ""
+echo "  4. Check status:"
+echo "     systemctl status hubbiott"
+echo ""
+
+exit 0

@@ -1,3 +1,6 @@
 # Added by goreleaser init:
 dist/
 /tmp
+
+# Build binaries
+bin/
