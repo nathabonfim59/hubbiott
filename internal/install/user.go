@@ -23,6 +23,7 @@ func NewUserInstaller(config *wizard.Config) *UserInstaller {
 
 // Install performs the user-mode installation.
 // It installs the binary, creates config directory, and sets up systemd user service.
+// On failure, it automatically rolls back any completed steps.
 func (u *UserInstaller) Install() (*Result, error) {
 	// Get home directory
 	home, err := os.UserHomeDir()
@@ -38,45 +39,75 @@ func (u *UserInstaller) Install() (*Result, error) {
 	servicePath := filepath.Join(serviceDir, "hubbiott.service")
 	workingDir := configDir
 
-	// Step 1: Install binary to ~/.local/bin/hubbiott
-	if err := u.installBinary(binaryPath); err != nil {
-		return nil, fmt.Errorf("failed to install binary: %w", err)
+	// Initialize rollback handler
+	rollback := NewRollback()
+
+	// Helper function to handle errors with rollback
+	handleError := func(err error) (*Result, error) {
+		if err != nil {
+			rollbackErr := rollback.Execute()
+			if rollbackErr != nil {
+				return nil, fmt.Errorf("%w (rollback also failed: %v)", err, rollbackErr)
+			}
+		}
+		return nil, err
 	}
+
+	// Step 1: Install binary to ~/.local/bin/hubbiott
+	rollback.AddStep("binary installation", RollbackFileRemoval(binaryPath))
+	if err := u.installBinary(binaryPath); err != nil {
+		return handleError(fmt.Errorf("failed to install binary: %w", err))
+	}
+	rollback.MarkCompleted()
 
 	// Step 2: Create config directory
+	rollback.AddStep("config directory creation", RollbackDirRemoval(configDir))
 	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create config directory: %w", err)
+		return handleError(fmt.Errorf("failed to create config directory: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	// Step 3: Generate and write config file
+	rollback.AddStep("config file creation", RollbackFileRemoval(configPath))
 	if err := u.config.GenerateConfigFile(configPath); err != nil {
-		return nil, fmt.Errorf("failed to write config file: %w", err)
+		return handleError(fmt.Errorf("failed to write config file: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	// Step 4: Create systemd user service directory
+	rollback.AddStep("systemd user directory creation", RollbackDirRemoval(serviceDir))
 	if err := os.MkdirAll(serviceDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create systemd user directory: %w", err)
+		return handleError(fmt.Errorf("failed to create systemd user directory: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	// Step 5: Create systemd user service file
+	rollback.AddStep("service file creation", RollbackFileRemoval(servicePath))
 	if err := u.createServiceFile(servicePath, binaryPath, workingDir); err != nil {
-		return nil, fmt.Errorf("failed to create service file: %w", err)
+		return handleError(fmt.Errorf("failed to create service file: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	// Step 6: Reload systemd daemon
+	rollback.AddStep("systemd daemon reload", RollbackDaemonReload(true))
 	if err := SystemctlUser("daemon-reload"); err != nil {
-		return nil, fmt.Errorf("failed to reload systemd daemon: %w", err)
+		return handleError(fmt.Errorf("failed to reload systemd daemon: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	// Step 7: Enable the service
+	rollback.AddStep("service enablement", RollbackServiceDisable("hubbiott.service", true))
 	if err := SystemctlUser("enable", "hubbiott.service"); err != nil {
-		return nil, fmt.Errorf("failed to enable service: %w", err)
+		return handleError(fmt.Errorf("failed to enable service: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	// Step 8: Start the service
+	rollback.AddStep("service start", RollbackServiceStop("hubbiott.service", true))
 	if err := SystemctlUser("start", "hubbiott.service"); err != nil {
-		return nil, fmt.Errorf("failed to start service: %w", err)
+		return handleError(fmt.Errorf("failed to start service: %w", err))
 	}
+	rollback.MarkCompleted()
 
 	return &Result{
 		BinaryPath:  binaryPath,
