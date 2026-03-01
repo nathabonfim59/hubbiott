@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/charmbracelet/huh"
+	"github.com/nathabonfim59/hubbiott/internal/install"
 	"github.com/nathabonfim59/hubbiott/internal/wizard"
 	"github.com/spf13/cobra"
 )
@@ -85,8 +86,42 @@ func runInstall() {
 	}
 	fmt.Println("✓ Configuration saved!")
 
-	// TODO: Implement service installation based on mode
-	fmt.Printf("\nInstallation mode: %s\n", config.InstallMode)
-	fmt.Println("\nService installation is not yet implemented.")
-	fmt.Println("For now, you can run the server manually with: hubbiott serve")
+	// Install service based on mode
+	fmt.Printf("\nInstalling Hubbiott (%s mode)...\n", config.InstallMode)
+
+	var result *install.Result
+	switch config.InstallMode {
+	case "user":
+		installer := install.NewUserInstaller(config)
+		result, err = installer.Install()
+	case "system":
+		fmt.Fprintf(os.Stderr, "System installation is not yet implemented.\n")
+		fmt.Println("For now, you can run the server manually with: hubbiott serve")
+		os.Exit(1)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown installation mode: %s\n", config.InstallMode)
+		os.Exit(1)
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during installation: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Display success message
+	fmt.Println()
+	fmt.Println("╭─────────────────────────────────────────────╮")
+	fmt.Println("│         Installation Complete!              │")
+	fmt.Println("╰─────────────────────────────────────────────╯")
+	fmt.Println()
+	fmt.Printf("Binary:     %s\n", result.BinaryPath)
+	fmt.Printf("Config:     %s\n", result.ConfigPath)
+	fmt.Printf("Service:    %s\n", result.ServicePath)
+	fmt.Println()
+	fmt.Println("The hubbiott service has been started and enabled.")
+	fmt.Println()
+	fmt.Println("Useful commands:")
+	fmt.Println("  systemctl --user status hubbiott    # Check service status")
+	fmt.Println("  systemctl --user logs hubbiott      # View service logs")
+	fmt.Println("  systemctl --user restart hubbiott   # Restart service")
 }
