@@ -1,0 +1,29 @@
+# Hubbiott Configuration Example
+# Copy this file to config.yaml and fill in your values
+
+# Discord Bot
+discord:
+  token: "your_discord_bot_token"
+  guild_id: ""  # Optional: for testing in a specific guild
+
+# Database
+# For Turso (production): libsql://your-db.turso.io
+# For local SQLite: file:./hubbiott.db
+database:
+  url: "file:./hubbiott.db"
+  auth_token: ""  # Required for Turso
+
+# API Security
+api:
+  key: "your_secure_random_api_key"
+
+# GitHub
+github:
+  token: "ghp_your_github_token"
+  webhook_secret: "your_webhook_secret"
+
+# OpenCode (optional)
+# opencode:
+#   api_key: "your_opencode_key"
+#   ttl: "30m"
+#   startup_timeout: "10s"

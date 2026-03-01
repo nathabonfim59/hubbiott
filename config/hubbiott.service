@@ -1,0 +1,23 @@
+[Unit]
+Description=Hubbiott - GitHub Bot Management Platform
+Documentation=https://github.com/nathabonfim59/hubbiott
+After=network.target
+
+[Service]
+Type=simple
+User=hubbiott
+Group=hubbiott
+ExecStart=/usr/local/bin/hubbiott
+Restart=on-failure
+RestartSec=5
+Environment="CONFIG_PATH=/etc/hubbiott/config.yaml"
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/hubbiott
+
+[Install]
+WantedBy=multi-user.target

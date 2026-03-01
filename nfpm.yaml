@@ -1,0 +1,59 @@
+# nfpm configuration for building .deb and .rpm packages
+# This complements goreleaser's nfpms section
+
+name: hubbiott
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+section: default
+priority: optional
+maintainer: Nathanael Bonfim <dev@nathabonfim59.com>
+description: |
+  Hubbiott - GitHub Bot Management Platform
+  A Discord bot that generates PR summaries using OpenCode AI,
+  streams media files, and provides a web dashboard for configuration.
+vendor: Nathanael Bonfim
+homepage: https://github.com/nathabonfim59/hubbiott
+license: MIT
+contents:
+  - src: ./bin/hubbiott
+    dst: /usr/local/bin/hubbiott
+    file_info:
+      mode: 0755
+      owner: root
+      group: root
+
+  - src: ./config/hubbiott.service
+    dst: /etc/systemd/system/hubbiott.service
+    file_info:
+      mode: 0644
+      owner: root
+      group: root
+    packager: deb,rpm
+
+  - src: ./config/config.example.yaml
+    dst: /etc/hubbiott/config.example.yaml
+    file_info:
+      mode: 0644
+      owner: root
+      group: root
+    type: config|noreplace
+
+overrides:
+  deb:
+    depends:
+      - systemd
+    scripts:
+      preinstall: ./scripts/preinstall.sh
+      postinstall: ./scripts/postinstall.sh
+      preremove: ./scripts/preremove.sh
+      postremove: ./scripts/postremove.sh
+
+  rpm:
+    depends:
+      - systemd
+    scripts:
+      preinstall: ./scripts/preinstall.sh
+      postinstall: ./scripts/postinstall.sh
+      preremove: ./scripts/preremove.sh
+      postremove: ./scripts/postremove.sh
