@@ -1,0 +1,29 @@
+# Hubbiott Configuration
+# Generated from embedded template
+
+# Discord Bot
+discord:
+  token: "{{.DiscordToken}}"
+  guild_id: "{{.DiscordGuildID}}"
+
+# Database
+# For Turso (production): libsql://your-db.turso.io
+# For local SQLite: file:./hubbiott.db
+database:
+  url: "{{.DatabaseURL}}"
+  auth_token: "{{.DatabaseAuthToken}}"
+
+# API Security
+api:
+  key: "{{.APIKey}}"
+
+# GitHub
+github:
+  token: "{{.GitHubToken}}"
+  webhook_secret: "{{.GitHubWebhookSecret}}"
+
+# OpenCode (optional)
+# opencode:
+#   api_key: "{{.OpenCodeAPIKey}}"
+#   ttl: "{{.OpenCodeTTL}}"
+#   startup_timeout: "{{.OpenCodeStartupTimeout}}"

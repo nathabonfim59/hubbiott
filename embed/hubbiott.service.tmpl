@@ -1,0 +1,31 @@
+[Unit]
+Description=Hubbiott - Discord Bot and Webhook Handler
+Documentation=https://github.com/nathabonfim59/hubbiott
+After=network.target
+
+[Service]
+Type=simple
+User={{.ServiceUser}}
+Group={{.ServiceGroup}}
+WorkingDirectory={{.WorkingDir}}
+ExecStart={{.BinaryPath}}
+Restart=on-failure
+RestartSec=5s
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/etc /usr
+ReadWritePaths={{.WorkingDir}}
+
+# Environment
+EnvironmentFile=-/etc/default/hubbiott
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hubbiott
+
+[Install]
+WantedBy=multi-user.target
