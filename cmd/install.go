@@ -95,9 +95,8 @@ func runInstall() {
 		installer := install.NewUserInstaller(config)
 		result, err = installer.Install()
 	case "system":
-		fmt.Fprintf(os.Stderr, "System installation is not yet implemented.\n")
-		fmt.Println("For now, you can run the server manually with: hubbiott serve")
-		os.Exit(1)
+		installer := install.NewSystemInstaller(config)
+		result, err = installer.Install()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown installation mode: %s\n", config.InstallMode)
 		os.Exit(1)
@@ -121,7 +120,13 @@ func runInstall() {
 	fmt.Println("The hubbiott service has been started and enabled.")
 	fmt.Println()
 	fmt.Println("Useful commands:")
-	fmt.Println("  systemctl --user status hubbiott    # Check service status")
-	fmt.Println("  systemctl --user logs hubbiott      # View service logs")
-	fmt.Println("  systemctl --user restart hubbiott   # Restart service")
+	if config.InstallMode == "system" {
+		fmt.Println("  sudo systemctl status hubbiott    # Check service status")
+		fmt.Println("  sudo journalctl -u hubbiott       # View service logs")
+		fmt.Println("  sudo systemctl restart hubbiott   # Restart service")
+	} else {
+		fmt.Println("  systemctl --user status hubbiott    # Check service status")
+		fmt.Println("  systemctl --user logs hubbiott      # View service logs")
+		fmt.Println("  systemctl --user restart hubbiott   # Restart service")
+	}
 }
