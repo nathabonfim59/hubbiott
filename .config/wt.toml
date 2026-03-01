@@ -42,9 +42,8 @@
 # Post-Create: Runs after worktree creation, BLOCKS until complete
 # Use for: installing dependencies, setting up databases, copying configs
 #
-# [post-create]
-# deps = "npm ci"
-# env = "cp .env.example .env"
+[post-create]
+tmux-window = "tmux new-window -n '{{ branch | sanitize }}' -c '{{ worktree_path }}' 'opencode --agent epic-orchestrator'"
 
 # Post-Start: Runs in BACKGROUND after worktree creation (parallel)
 # Use for: dev servers, file watchers, background builds
