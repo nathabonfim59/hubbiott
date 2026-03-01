@@ -1,5 +1,7 @@
 # nfpm configuration for building .deb and .rpm packages
-# This complements goreleaser's nfpms section
+# Standalone config for local package building without goreleaser
+# Usage: VERSION=0.1.0 ARCH=amd64 nfpm pkg --packager deb --target ./dist/
+#        VERSION=0.1.0 ARCH=amd64 nfpm pkg --packager rpm --target ./dist/
 
 name: hubbiott
 arch: ${ARCH}
@@ -15,7 +17,9 @@ description: |
 vendor: Nathanael Bonfim
 homepage: https://github.com/nathabonfim59/hubbiott
 license: MIT
+
 contents:
+  # Main binary
   - src: ./bin/hubbiott
     dst: /usr/local/bin/hubbiott
     file_info:
@@ -23,14 +27,15 @@ contents:
       owner: root
       group: root
 
+  # Systemd service unit file
   - src: ./config/hubbiott.service
     dst: /etc/systemd/system/hubbiott.service
     file_info:
       mode: 0644
       owner: root
       group: root
-    packager: deb,rpm
 
+  # Example configuration (config|noreplace prevents overwrite on upgrade)
   - src: ./config/config.example.yaml
     dst: /etc/hubbiott/config.example.yaml
     file_info:

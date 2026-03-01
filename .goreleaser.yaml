@@ -97,7 +97,10 @@ nfpms:
     vendor: Nathanael Bonfim
     homepage: https://github.com/nathabonfim59/hubbiott
     maintainer: Nathanael Bonfim <dev@nathabonfim59.com>
-    description: Hubbiott - GitHub Bot Management Platform
+    description: |
+      Hubbiott - GitHub Bot Management Platform
+      A Discord bot that generates PR summaries using OpenCode AI,
+      streams media files, and provides a web dashboard for configuration.
     license: MIT
     formats:
       - deb
@@ -105,6 +108,27 @@ nfpms:
     builds:
       - linux
     bindir: /usr/local/bin
+    contents:
+      # Systemd service unit file
+      - src: ./config/hubbiott.service
+        dst: /etc/systemd/system/hubbiott.service
+        file_info:
+          mode: 0644
+          owner: root
+          group: root
+      # Example configuration
+      - src: ./config/config.example.yaml
+        dst: /etc/hubbiott/config.example.yaml
+        file_info:
+          mode: 0644
+          owner: root
+          group: root
+        type: config|noreplace
+    scripts:
+      preinstall: ./scripts/preinstall.sh
+      postinstall: ./scripts/postinstall.sh
+      preremove: ./scripts/preremove.sh
+      postremove: ./scripts/postremove.sh
 
 changelog:
   sort: asc
